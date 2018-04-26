@@ -1,5 +1,6 @@
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -9,9 +10,18 @@ import java.util.List;
 public class filtreAntiSpam {
 
 	private List<String> dictionnaire;
+	private int nbSpam, nbHam;
+	private int[] bSpam, bHam;
 
-	public filtreAntiSpam(){
+	private static final String spamDir = "baseapp/spam";
+	private static final String hamDir = "baseapp/ham";
+
+	public filtreAntiSpam(int spam, int ham){
+		this.nbHam = ham;
+		this.nbSpam = spam;
 		this.dictionnaire = new ArrayList<>();
+		this.charger_dictionnaire("dictionnaire1000en.txt");
+		this.bSpam = this.apprentissage(spamDir, this.nbSpam);
 	}
 
 	/*
@@ -69,7 +79,25 @@ public class filtreAntiSpam {
 		return vecteur;
 	}
 
+	public int[] apprentissage(String dir, int nb){
+		int words[] = new int[this.dictionnaire.size()];
+		File folder = new File(dir);
+		File[] files = folder.listFiles();
+		for(int i=0; i<nb; i++){
+			boolean message[] = this.lire_message(dir + "/" + files[i].getName());
+			for(int j=0; j<message.length; j++){
+				if(message[0]){
+					words[j]++;
+				}
+			}
+		}
+		return words;
+	}
+
 	public static void main(String[] args) {
-		filtreAntiSpam fas = new filtreAntiSpam();
+		int nbSpam = 200;
+		int nbHam = 200;
+		filtreAntiSpam fas = new filtreAntiSpam(nbSpam, nbHam);
+
 	}
 }
