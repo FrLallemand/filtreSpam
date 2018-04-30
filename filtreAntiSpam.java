@@ -10,18 +10,43 @@ import java.util.List;
 public class filtreAntiSpam {
 
 	private List<String> dictionnaire;
-	private int nbSpam, nbHam;
-	private int[] bSpam, bHam;
+	private double nbSpam, nbHam;
+	private double probaSpam, probaHam;
+
+	private double[] bSpam, bHam;
 
 	private static final String spamDir = "baseapp/spam";
 	private static final String hamDir = "baseapp/ham";
+	private static final double epsilon = 1;
 
 	public filtreAntiSpam(int spam, int ham){
-		this.nbHam = ham;
-		this.nbSpam = spam;
+		this.nbHam = (double)ham;
+		this.nbSpam = (double)spam;
 		this.dictionnaire = new ArrayList<>();
-		this.charger_dictionnaire("dictionnaire1000en.txt");
-		this.bSpam = this.apprentissage(spamDir, this.nbSpam);
+		//this.charger_dictionnaire("dictionnaire1000en.txt");
+		//this.apprentissage();
+
+	}
+
+	public void apprentissage(){
+		System.out.println("Apprentissage");
+
+		this.bSpam = new double[this.dictionnaire.size()];
+		this.bHam = new double[this.dictionnaire.size()];
+		double[] apparitionSpam = this.apparitionSpamHam(spamDir, this.nbSpam);
+		double[] apparitionHam = this.apparitionSpamHam(hamDir, this.nbHam);
+		for(int i=0; i<this.dictionnaire.size(); i++){
+			// calcule bjSpam
+			this.bSpam[i] = (apparitionSpam[i] + epsilon) / (nbSpam + 2*epsilon);
+			// calcule bjHam
+			this.bHam[i] = (apparitionHam[i] + epsilon) / (nbHam + 2*epsilon);
+		}
+
+		// estimation des probabilités
+		this.probaSpam = nbSpam / (nbSpam + nbHam);
+		this.probaHam = 1 - this.probaSpam;
+
+		System.out.println("P( Y = SPAM ) = "+ this.probaSpam +" P( Y = HAM ) = "+ this.probaHam);
 	}
 
 	/*
@@ -79,8 +104,8 @@ public class filtreAntiSpam {
 		return vecteur;
 	}
 
-	public int[] apprentissage(String dir, int nb){
-		int words[] = new int[this.dictionnaire.size()];
+	public double[] apparitionSpamHam(String dir, double nb){
+		double[] words = new double[this.dictionnaire.size()];
 		File folder = new File(dir);
 		File[] files = folder.listFiles();
 		for(int i=0; i<nb; i++){
@@ -99,5 +124,7 @@ public class filtreAntiSpam {
 		int nbHam = 200;
 		filtreAntiSpam fas = new filtreAntiSpam(nbSpam, nbHam);
 
+		fas.charger_dictionnaire("dictionnaire1000en.txt");
+		fas.apprentissage();
 	}
 }
