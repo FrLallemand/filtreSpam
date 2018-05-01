@@ -27,9 +27,6 @@ public class filtreAntiSpam {
 		this.nbHam = (double)ham;
 		this.nbSpam = (double)spam;
 		this.dictionnaire = new ArrayList<>();
-		//this.charger_dictionnaire("dictionnaire1000en.txt");
-		//this.apprentissage();
-
 	}
 
 	public void apprentissage(){
@@ -39,9 +36,11 @@ public class filtreAntiSpam {
 		this.bHam = new double[this.dictionnaire.size()];
 		double[] apparitionSpam = this.apparitionSpamHam(spamDir, this.nbSpam);
 		double[] apparitionHam = this.apparitionSpamHam(hamDir, this.nbHam);
+
 		for(int i=0; i<this.dictionnaire.size(); i++){
 			// calcule bjSpam
 			this.bSpam[i] = (apparitionSpam[i] + epsilon) / (nbSpam + 2*epsilon);
+			//System.out.println("On a calculé bSpam = " + this.bSpam[i] + " pour " + this.dictionnaire.get(i) + " car il apparaissait : " + apparitionSpam[i] + " fois");
 			// calcule bjHam
 			this.bHam[i] = (apparitionHam[i] + epsilon) / (nbHam + 2*epsilon);
 		}
@@ -53,6 +52,12 @@ public class filtreAntiSpam {
 		System.out.println("P( Y = SPAM ) = "+ this.probaSpam +" P( Y = HAM ) = "+ this.probaHam);
 	}
 
+	public void printApprentissage(){
+		for(int i = 0; i < this.dictionnaire.size(); i++){
+			System.out.println(dictionnaire.get(i) + " =  SPAM : " + this.bSpam[i] + " / HAM : " + this.bHam[i]);
+		}
+	}
+
 	public double[] apparitionSpamHam(String dir, double nb){
 		double[] words = new double[this.dictionnaire.size()];
 		File folder = new File(dir);
@@ -60,7 +65,7 @@ public class filtreAntiSpam {
 		for(int i=0; i<nb; i++){
 			boolean message[] = this.lire_message(dir + "/" + files[i].getName());
 			for(int j=0; j<message.length; j++){
-				if(message[0]){
+				if(message[j]){
 					words[j]++;
 				}
 			}
@@ -128,7 +133,6 @@ public class filtreAntiSpam {
 		double pSpam = 0;
 		double pHam = 0;
 
-		/*
 		// pitoyable tentative d'utiliser log
 		for(int i=0; i<this.dictionnaire.size(); i++){
 			if(mail[i]) { // il y a une occurence du mot i
@@ -152,7 +156,8 @@ public class filtreAntiSpam {
 		} else {
 			return false;
 		}
-		*/
+
+		/*
 		double proba = 0;
 		double probap = 0;
 		double partie1p, partie2p, partie1, partie2;
@@ -163,8 +168,9 @@ public class filtreAntiSpam {
 			if(mail[i]){
 				b = 1.0;
 			}
-			biSpam = (double)((double)((bSpam[i])+epsilon)/(nbSpam+(2*epsilon)));
-			biHam = (double)((double)((bHam[i])+epsilon)/(nbHam+(2*epsilon)));
+			biSpam = bSpam[i];
+			biHam = bHam[i];
+
 			//System.out.println(spam.dictionnaire[i]+" "+biSpam);
 			partie1 = (double)(Math.pow((double)(biSpam),b));
 			partie2 = (double)(Math.pow((double)(1-(double)(biSpam)),(double)(1-b)));
@@ -183,7 +189,7 @@ public class filtreAntiSpam {
 		} else {
 			return false;
 		}
-
+		*/
 	}
 
 
@@ -194,11 +200,12 @@ public class filtreAntiSpam {
 
 		fas.charger_dictionnaire("dictionnaire1000en.txt");
 		fas.apprentissage();
+		//fas.printApprentissage();
+
 		for(int i=0; i<20; i++){
-			boolean a = fas.isSpam(fas.lire_message("basetest/ham/"+i+".txt"));
+			boolean a = fas.isSpam(fas.lire_message("basetest/spam/"+i+".txt"));
 
 			System.out.println(a);
 		}
-
 	}
 }
