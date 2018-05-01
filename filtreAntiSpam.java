@@ -1,4 +1,3 @@
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -6,8 +5,13 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 public class filtreAntiSpam {
+
+	public static final String ANSI_RESET = "\u001B[0m";
+	public static final String ANSI_RED = "\u001B[31m";
+	public static final String ANSI_GREEN = "\u001B[32m";
 
 	private List<String> dictionnaire;
 	private double nbSpam, nbHam;
@@ -49,7 +53,7 @@ public class filtreAntiSpam {
 		this.probaSpam = nbSpam / (nbSpam + nbHam);
 		this.probaHam = 1 - this.probaSpam;
 
-		System.out.println("P( Y = SPAM ) = "+ this.probaSpam +" P( Y = HAM ) = "+ this.probaHam);
+		// System.out.println("P( Y = SPAM ) = "+ this.probaSpam +" P( Y = HAM ) = "+ this.probaHam);
 	}
 
 	public void printApprentissage(){
@@ -148,64 +152,79 @@ public class filtreAntiSpam {
 
 		//pSpam = Math.exp(pHam - pSpam);
 		//	pHam = Math.exp(pSpam - pHam);
-		System.out.println("P( Y=SPAM | X=x ) =" + pSpam );
- 		System.out.println("P( Y=HAM | X=x ) =" + pHam);
+		//System.out.println("P( Y=SPAM | X=x ) =" + pSpam );
+ 		// System.out.println("P( Y=HAM | X=x ) =" + pHam);
 
 		if(pSpam > pHam){
 			return true;
 		} else {
 			return false;
 		}
-
-		/*
-		double proba = 0;
-		double probap = 0;
-		double partie1p, partie2p, partie1, partie2;
-		double biSpam;
-		double biHam;
-		for(int i=0; i<this.dictionnaire.size(); i++){
-			double b = 0.0;
-			if(mail[i]){
-				b = 1.0;
-			}
-			biSpam = bSpam[i];
-			biHam = bHam[i];
-
-			//System.out.println(spam.dictionnaire[i]+" "+biSpam);
-			partie1 = (double)(Math.pow((double)(biSpam),b));
-			partie2 = (double)(Math.pow((double)(1-(double)(biSpam)),(double)(1-b)));
-			proba = (double)((double)(proba)+Math.log((double)((double)(partie1)*(double)(partie2))));
-
-			partie1p = (double)(Math.pow((double)(biHam),b));
-			partie2p = (double)(Math.pow((double)(1-(double)(biHam)),(double)(1-b)));
-			probap = (double)((double)(proba)+Math.log((double)((double)(partie1p)*(double)(partie2p))));
-		}
-
-		System.out.println("P( Y=SPAM | X=x ) =" + proba );
- 		System.out.println("P( Y=HAM | X=x ) =" + probap);
-
-		if(proba > probap){
-			return true;
-		} else {
-			return false;
-		}
-		*/
 	}
 
 
 	public static void main(String[] args) {
-		int nbSpam = 200;
-		int nbHam = 200;
+		if(args.length != 3){
+			System.out.println("usage : java filtreAntiSpam <test_folder> <number of spam in test folder> <number of ham in test folder>");
+			System.exit(-1);
+		}
+
+		String testFolder = args[0];
+		int nbSpamInTest = Integer.parseInt(args[1]);
+		int nbHamInTest = Integer.parseInt(args[2]);
+
+		int nbSpam;
+		int nbHam;
+
+		Scanner reader = new Scanner(System.in);
+
+		System.out.print("Nombre de spams dans la base d'apprentissage : ");
+		nbSpam = reader.nextInt();
+		System.out.println("");
+		System.out.print("Nombre de hams dans la base d'apprentissage : ");
+		nbHam = reader.nextInt();
+		System.out.println("");
+
 		filtreAntiSpam fas = new filtreAntiSpam(nbSpam, nbHam);
 
 		fas.charger_dictionnaire("dictionnaire1000en.txt");
 		fas.apprentissage();
-		//fas.printApprentissage();
 
-		for(int i=0; i<20; i++){
-			boolean a = fas.isSpam(fas.lire_message("basetest/spam/"+i+".txt"));
+		System.out.println("=== TEST ===\n");
 
-			System.out.println(a);
+		double nbCorrectSpam = 0;
+		double nbCorrectHam = 0;
+
+		for(int i=0; i<nbSpamInTest; i++){
+			boolean a = fas.isSpam(fas.lire_message(testFolder + "/spam/" + i + ".txt"));
+
+			if(a){
+				System.out.println(ANSI_GREEN + "Spam number " + i + " has been classified as a SPAM" + ANSI_RESET);
+				nbCorrectSpam++;
+			}
+			else{
+				System.out.println(ANSI_RED + "Spam number " + i + " has been classified as a HAM" + ANSI_RESET);
+			}
 		}
+
+		for(int i=0; i<nbHamInTest; i++){
+			boolean a = fas.isSpam(fas.lire_message(testFolder + "/ham/" + i + ".txt"));
+
+			if(!a){
+				System.out.println(ANSI_GREEN + "Ham number " + i + " has been classified as a HAM" + ANSI_RESET);
+				nbCorrectHam++;
+			}
+			else{
+				System.out.println(ANSI_RED + "HAM number " + i + " has been classified as a SPAM" + ANSI_RESET);
+			}
+		}
+
+		double spamError = (nbSpamInTest - nbCorrectSpam) / nbSpamInTest;
+		double hamError = (nbHamInTest - nbCorrectHam) / nbHamInTest;
+		double globalError = (nbSpamInTest + nbHamInTest - nbCorrectSpam - nbCorrectHam) / (nbHamInTest + nbSpamInTest);
+
+		System.out.println("Test error on " + nbSpamInTest + " spams : " + spamError + "%");
+		System.out.println("Test error on " + nbHamInTest + " hams : " + hamError + "%");
+		System.out.println("Global test error : " + globalError + "%");
 	}
 }
