@@ -41,8 +41,7 @@ public class filtreAntiSpam implements Serializable{
 	}
 
 	public void apprentissage(){
-		System.out.println("Apprentissage");
-
+		System.out.printf("Apprentissage sur: %d spams et %d hams...\n", (long)this.nbSpam, (long)this.nbHam);
 		this.bSpam = new double[this.dictionnaire.size()];
 		this.bHam = new double[this.dictionnaire.size()];
 		double[] apparitionSpam = this.apparitionSpamHam(spamDir, this.nbSpam);
@@ -197,67 +196,97 @@ public class filtreAntiSpam implements Serializable{
 
 
 	public static void main(String[] args) {
-		if(args.length != 3){
+		String firstArg = args[0];
+		if((args.length == 4) && (firstArg.equals("save"))){
+			//sauvegarde du classifieur
+			String destination = args[1];
+			int nbSpam = Integer.parseInt(args[2]);
+			int nbHam = Integer.parseInt(args[3]);
+			filtreAntiSpam fas = new filtreAntiSpam(nbSpam, nbHam);
+
+			fas.charger_dictionnaire("dictionnaire1000en.txt");
+			fas.apprentissage();
+			fas.save(destination);
+			System.out.printf("Classifieur enregistré dans: %s.\n", destination);
+		} else if (args.length == 3){
+			//execution "classique"
+			String testFolder = args[0];
+			int nbSpamInTest = Integer.parseInt(args[1]);
+			int nbHamInTest = Integer.parseInt(args[2]);
+
+			int nbSpam;
+			int nbHam;
+
+			Scanner reader = new Scanner(System.in);
+
+			System.out.print("Nombre de spams dans la base d'apprentissage : ");
+			nbSpam = reader.nextInt();
+			System.out.println("");
+			System.out.print("Nombre de hams dans la base d'apprentissage : ");
+			nbHam = reader.nextInt();
+			System.out.println("");
+
+			filtreAntiSpam fas = new filtreAntiSpam(nbSpam, nbHam);
+
+			fas.charger_dictionnaire("dictionnaire1000en.txt");
+			fas.apprentissage();
+
+			System.out.println("=== TEST ===\n");
+
+			double nbCorrectSpam = 0;
+			double nbCorrectHam = 0;
+
+			for(int i=0; i<nbSpamInTest; i++){
+				boolean a = fas.isSpam(fas.lire_message(testFolder + "/spam/" + i + ".txt"));
+
+				if(a){
+					System.out.println(ANSI_GREEN + "Spam number " + i + " has been classified as a SPAM" + ANSI_RESET);
+					nbCorrectSpam++;
+				}
+				else{
+					System.out.println(ANSI_RED + "Spam number " + i + " has been classified as a HAM" + ANSI_RESET);
+				}
+			}
+
+			for(int i=0; i<nbHamInTest; i++){
+				boolean a = fas.isSpam(fas.lire_message(testFolder + "/ham/" + i + ".txt"));
+
+				if(!a){
+					System.out.println(ANSI_GREEN + "Ham number " + i + " has been classified as a HAM" + ANSI_RESET);
+					nbCorrectHam++;
+				}
+				else{
+					System.out.println(ANSI_RED + "HAM number " + i + " has been classified as a SPAM" + ANSI_RESET);
+				}
+			}
+
+			double spamError = (nbSpamInTest - nbCorrectSpam) / nbSpamInTest;
+			double hamError = (nbHamInTest - nbCorrectHam) / nbHamInTest;
+			double globalError = (nbSpamInTest + nbHamInTest - nbCorrectSpam - nbCorrectHam) / (nbHamInTest + nbSpamInTest);
+
+			System.out.println("Test error on " + nbSpamInTest + " spams : " + spamError + "%");
+			System.out.println("Test error on " + nbHamInTest + " hams : " + hamError + "%");
+			System.out.println("Global test error : " + globalError + "%");
+		} else if((args.length == 2)){
+			//utilisation d'un classifieur sauvegardé
+			String source = args[0];
+			String mail = args[1];
+
+			filtreAntiSpam fas = new filtreAntiSpam(0, 0);
+			fas = fas.load(source);
+
+			boolean a = fas.isSpam(fas.lire_message(mail));
+			if(a){
+				System.out.printf("D’après ’%s’, le message ’s’ est un SPAM !\n", source, mail);
+			} else {
+				System.out.printf("D’après ’%s’, le message ’s’ est un HAM !\n", source, mail);
+			}
+		}else {
 			System.out.println("usage : java filtreAntiSpam <test_folder> <number of spam in test folder> <number of ham in test folder>");
+			System.out.println("usage : java filtreAntiSpam save <file where to store classifier > <number of spam> <number of ham>");
+			System.out.println("usage : java filtreAntiSpam <source file for the classifier > <message to test>");
 			System.exit(-1);
 		}
 
-		String testFolder = args[0];
-		int nbSpamInTest = Integer.parseInt(args[1]);
-		int nbHamInTest = Integer.parseInt(args[2]);
-
-		int nbSpam;
-		int nbHam;
-
-		Scanner reader = new Scanner(System.in);
-
-		System.out.print("Nombre de spams dans la base d'apprentissage : ");
-		nbSpam = reader.nextInt();
-		System.out.println("");
-		System.out.print("Nombre de hams dans la base d'apprentissage : ");
-		nbHam = reader.nextInt();
-		System.out.println("");
-
-		filtreAntiSpam fas = new filtreAntiSpam(nbSpam, nbHam);
-
-		fas.charger_dictionnaire("dictionnaire1000en.txt");
-		fas.apprentissage();
-
-		System.out.println("=== TEST ===\n");
-
-		double nbCorrectSpam = 0;
-		double nbCorrectHam = 0;
-
-		for(int i=0; i<nbSpamInTest; i++){
-			boolean a = fas.isSpam(fas.lire_message(testFolder + "/spam/" + i + ".txt"));
-
-			if(a){
-				System.out.println(ANSI_GREEN + "Spam number " + i + " has been classified as a SPAM" + ANSI_RESET);
-				nbCorrectSpam++;
-			}
-			else{
-				System.out.println(ANSI_RED + "Spam number " + i + " has been classified as a HAM" + ANSI_RESET);
-			}
-		}
-
-		for(int i=0; i<nbHamInTest; i++){
-			boolean a = fas.isSpam(fas.lire_message(testFolder + "/ham/" + i + ".txt"));
-
-			if(!a){
-				System.out.println(ANSI_GREEN + "Ham number " + i + " has been classified as a HAM" + ANSI_RESET);
-				nbCorrectHam++;
-			}
-			else{
-				System.out.println(ANSI_RED + "HAM number " + i + " has been classified as a SPAM" + ANSI_RESET);
-			}
-		}
-
-		double spamError = (nbSpamInTest - nbCorrectSpam) / nbSpamInTest;
-		double hamError = (nbHamInTest - nbCorrectHam) / nbHamInTest;
-		double globalError = (nbSpamInTest + nbHamInTest - nbCorrectSpam - nbCorrectHam) / (nbHamInTest + nbSpamInTest);
-
-		System.out.println("Test error on " + nbSpamInTest + " spams : " + spamError + "%");
-		System.out.println("Test error on " + nbHamInTest + " hams : " + hamError + "%");
-		System.out.println("Global test error : " + globalError + "%");
 	}
 }
