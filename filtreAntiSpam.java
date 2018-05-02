@@ -62,6 +62,42 @@ public class filtreAntiSpam implements Serializable{
 		// System.out.println("P( Y = SPAM ) = "+ this.probaSpam +" P( Y = HAM ) = "+ this.probaHam);
 	}
 
+	public void apprentissageV2(boolean[] mail, boolean spam){
+
+		if(spam){
+			this.nbSpam++;
+			for(int i=0; i<this.dictionnaire.size(); i++){
+				// calcule mjSpam
+				// bjspam = (njspam + epsilon) / (mjspam + 2*epsilon )
+				// => mjspam = bjspam * (mjspam + 2*epsilon ) - epsilon
+				double njSpam = (this.bSpam[i] + (this.nbSpam + 2*epsilon))- epsilon;
+				double x = 0;
+				if(mail[i]){
+					x = 1;
+				}
+				this.bSpam[i] = (njSpam + x + epsilon) / (this.nbSpam + 1 + 2*epsilon);
+			}
+		} else {
+			this.nbHam++;
+			for(int i=0; i<this.dictionnaire.size(); i++){
+				double njHam = (this.bHam[i] + (this.nbHam + 2*epsilon))- epsilon;
+				double x = 0;
+				if(mail[i]){
+					x = 1;
+				}
+				this.bHam[i] = (njHam + x + epsilon) / (this.nbHam + 1 + 2*epsilon);
+			}
+		}
+
+
+
+		// estimation des probabilités
+		this.probaSpam = nbSpam / (nbSpam + nbHam);
+		this.probaHam = 1 - this.probaSpam;
+
+		// System.out.println("P( Y = SPAM ) = "+ this.probaSpam +" P( Y = HAM ) = "+ this.probaHam);
+	}
+
 	public void printApprentissage(){
 		for(int i = 0; i < this.dictionnaire.size(); i++){
 			System.out.println(dictionnaire.get(i) + " =  SPAM : " + this.bSpam[i] + " / HAM : " + this.bHam[i]);
@@ -208,7 +244,34 @@ public class filtreAntiSpam implements Serializable{
 			fas.apprentissage();
 			fas.save(destination);
 			System.out.printf("Classifieur enregistré dans: %s.\n", destination);
-		} else if (args.length == 3){
+		} else if((args.length == 4) && (firstArg.equals("filtre_ligne"))){
+			//utilisation d'un classifieur sauvegardé, en ligne
+			String source = args[1];
+			String mail = args[2];
+			String mailType = args[3];
+			boolean spam = false;
+			if(mailType.equals("SPAM")) {
+				spam = true;
+			} else if(mailType.equals("HAM")){
+				spam = false;
+			} else {
+				System.out.printf("Must be SPAM or HAM\n");
+				System.exit(-1);
+			}
+			filtreAntiSpam fas = new filtreAntiSpam(0, 0);
+			fas = fas.load(source);
+
+			fas.apprentissageV2(fas.lire_message(mail), spam);
+
+			fas.save(source);
+
+			if(spam) {
+				System.out.printf("Modification du filtre %s par apprentissage sur le SPAM %s.\n", source, mail);
+			} else{
+						System.out.printf("Modification du filtre %s par apprentissage sur le HAM %s.\n", source, mail);
+			}
+
+		}else if (args.length == 3){
 			//execution "classique"
 			String testFolder = args[0];
 			int nbSpamInTest = Integer.parseInt(args[1]);
@@ -277,13 +340,14 @@ public class filtreAntiSpam implements Serializable{
 
 			boolean a = fas.isSpam(fas.lire_message(mail));
 			if(a){
-				System.out.printf("D’après ’%s’, le message ’s’ est un SPAM !\n", source, mail);
+				System.out.printf("D’après ’%s’, le message ’%s’ est un SPAM !\n", source, mail);
 			} else {
-				System.out.printf("D’après ’%s’, le message ’s’ est un HAM !\n", source, mail);
+				System.out.printf("D’après ’%s’, le message ’%s’ est un HAM !\n", source, mail);
 			}
 		}else {
 			System.out.println("usage : java filtreAntiSpam <test_folder> <number of spam in test folder> <number of ham in test folder>");
 			System.out.println("usage : java filtreAntiSpam save <file where to store classifier > <number of spam> <number of ham>");
+			System.out.println("usage : java filtreAntiSpam filtre_ligne <source file for the classifier > <message> <HAM or SPAM>");
 			System.out.println("usage : java filtreAntiSpam <source file for the classifier > <message to test>");
 			System.exit(-1);
 		}
