@@ -1,13 +1,20 @@
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.io.Serializable;
 
-public class filtreAntiSpam {
+public class filtreAntiSpam implements Serializable{
+	private static final long serialVersionUID = 1L;
 
 	public static final String ANSI_RESET = "\u001B[0m";
 	public static final String ANSI_RED = "\u001B[31m";
@@ -150,16 +157,42 @@ public class filtreAntiSpam {
 		pSpam += this.probaSpam;
 		pHam += this.probaHam;
 
-		//pSpam = Math.exp(pHam - pSpam);
-		//	pHam = Math.exp(pSpam - pHam);
-		//System.out.println("P( Y=SPAM | X=x ) =" + pSpam );
- 		// System.out.println("P( Y=HAM | X=x ) =" + pHam);
-
 		if(pSpam > pHam){
 			return true;
 		} else {
 			return false;
 		}
+	}
+
+	public void save(String destination){
+		try{
+			FileOutputStream file = new FileOutputStream(new File(destination));
+			ObjectOutputStream oos = new ObjectOutputStream(file);
+			oos.writeObject(this);
+			oos.close();
+		} catch (FileNotFoundException e) {
+			System.out.println("File not found");
+		} catch (IOException e) {
+			System.out.println("Error initializing stream");
+		}
+	}
+
+
+	public filtreAntiSpam load(String source){
+		filtreAntiSpam fas = null;
+		try{
+			FileInputStream file = new FileInputStream(new File(source));
+			ObjectInputStream ois = new ObjectInputStream(file);
+			fas = (filtreAntiSpam) ois.readObject();
+			ois.close();
+		} catch (FileNotFoundException e) {
+			System.out.println("File not found");
+		} catch (IOException e) {
+			System.out.println("Error initializing stream");
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+		return fas;
 	}
 
 
