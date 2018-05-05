@@ -1,0 +1,105 @@
+\documentclass[a4paper, 11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{graphicx}
+\usepackage[french]{babel}
+\usepackage{listings}
+\usepackage{tikz}
+\usepackage{enumitem}
+
+\title{Projet : filtre anti-spam}
+\author{Ladeveze Quentin\\Lallemand François}
+\begin{document}
+\maketitle
+
+
+\section{Utilisation du programme}
+Les sources de ce projet se trouvent dans le fichier filtreAntiSpam.java, à compiler par la commande:
+\begin{lstlisting}[language=bash]
+  javac filtreAntiSpam.java
+\end{lstlisting}
+La classe filtreAntiSpam se lance par les commande:
+\begin{itemize}[label=\textbullet]
+\item java filtreAntiSpam <test\_folder> <number of spam in test folder> <number of ham in test folder>
+  Effectue un test avec les fichiers situés dans <test\_folder>, sur le nombre de SPAM et de HAM indiqués. Le programme demande ensuite un nombre de SPAM et de HAM dans la base d'apprentissage et lance le test.
+\item java filtreAntiSpam save <file where to store classifier > <number of spam> <number of ham>
+  Cette option effectue un apprentissage sur le nombre de SPAM et de HAM indiqués et enregistre le classifieur dans le fichier dont le nom est donné en paramètre.
+\item java filtreAntiSpam filtre\_ligne <source file for the classifier > <message> <HAM or SPAM>
+  Cette option effectue un apprentissage en ligne en se basant sur un classifieur existant.
+\item java filtreAntiSpam <source file for the classifier > <message to test>
+  Cette option permet de tester un mail rapidement à partir d'un classifieur existant.
+\end{itemize}
+
+\section{Répartition du travail}
+Nous nous sommes répartis le travail de la manière suivante :
+Nous avons réfléchi ensemble aux questions avant d'implémenter les réponses sur une seule machine.
+
+\section{Choix effectués}
+Afin de décider si un message est ou non un spam, plutôt que de calculer :
+\[ \prod\limits_{j=1}^d {(b^jSPAM)^x}^j {(1-b^jSPAM)^{1-x}}^j \]
+Nous avons utilisé les logarithmes afin de calculer :
+\[ \sum\limits_{j=1}^d ln({(b^jSPAM)^x}^j) ln({(1-b^jSPAM)^{1-x}}^j) \]
+
+Les \[ x^j \] et \[ 1- x^j \] sont représentés sous forme de booléens, afin de simplifier les calculs du classifieurs en utilisant des conditions ``if'' plutot que des calculs de puissance.
+
+La fonction lire\_message sépare le texte selon l'expression régulière ``\\ W+''. W correspond aux charactères qui ne sont ni des chiffres, ni des lettres. Cela permet de reconnaitre les mots suivis d'un signe de ponctuation, comme ``House,''.
+
+\section{Exemple d'exécution}
+
+\begin{lstlisting}[language=bash]
+java filtreAntiSpam  basetest 100 200
+Nombre de spams dans la base d'apprentissage : 200
+
+Nombre de hams dans la base d'apprentissage : 200
+
+Apprentissage sur: 200 spams et 200 hams...
+=== TEST ===
+
+P(Y=SPAM | X=x) = -291,529731, P(Y=HAM | X=x) = -319,106067.
+Spam number 0 classified as SPAM
+P(Y=SPAM | X=x) = -295,396522, P(Y=HAM | X=x) = -338,647222.
+Spam number 1 classified as SPAM
+P(Y=SPAM | X=x) = -296,500981, P(Y=HAM | X=x) = -350,242648.
+Spam number 2 classified as SPAM
+P(Y=SPAM | X=x) = -296,500981, P(Y=HAM | X=x) = -350,242648.
+Spam number 3 classified as SPAM
+P(Y=SPAM | X=x) = -205,249638, P(Y=HAM | X=x) = -253,033832.
+...
+P(Y=SPAM | X=x) = -99,320038, P(Y=HAM | X=x) = -87,989156.
+Spam number 29 classified as HAM *** error ***
+...
+P(Y=SPAM | X=x) = -103,779099, P(Y=HAM | X=x) = -100,698392.
+Spam number 97 classified as HAM *** error ***
+P(Y=SPAM | X=x) = -186,837117, P(Y=HAM | X=x) = -196,483656.
+Spam number 98 classified as SPAM
+P(Y=SPAM | X=x) = -220,585287, P(Y=HAM | X=x) = -248,344009.
+Spam number 99 classified as SPAM
+...
+P(Y=SPAM | X=x) = -386,925411, P(Y=HAM | X=x) = -369,281157.
+Ham number 0 classified as HAM
+P(Y=SPAM | X=x) = -168,757847, P(Y=HAM | X=x) = -143,911920.
+Ham number 1 classified as HAM
+...
+P(Y=SPAM | X=x) = -417,327559, P(Y=HAM | X=x) = -431,827431.
+HAM number 54 classified as SPAM *** error ***
+P(Y=SPAM | X=x) = -466,173949, P(Y=HAM | X=x) = -474,356725.
+HAM number 55 classified as SPAM *** error ***
+...
+P(Y=SPAM | X=x) = -174,426532, P(Y=HAM | X=x) = -155,199404.
+Ham number 196 classified as HAM
+P(Y=SPAM | X=x) = -255,184287, P(Y=HAM | X=x) = -236,380796.
+Ham number 197 classified as HAM
+P(Y=SPAM | X=x) = -130,871171, P(Y=HAM | X=x) = -118,576840.
+Ham number 198 classified as HAM
+P(Y=SPAM | X=x) = -368,254599, P(Y=HAM | X=x) = -340,982368.
+Ham number 199 classified as HAM
+
+Test error on 100 spams : 12.0%
+Test error on 200 hams : 2.0%
+Global test error : 5.333333333333333%
+
+
+\end{lstlisting}
+
+\end{document}

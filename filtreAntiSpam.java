@@ -192,6 +192,8 @@ public class filtreAntiSpam implements Serializable{
 		pSpam += this.probaSpam;
 		pHam += this.probaHam;
 
+		System.out.printf("P(Y=SPAM | X=x) = %f, P(Y=HAM | X=x) = %f.\n", pSpam, pHam);
+
 		if(pSpam > pHam){
 			return true;
 		} else {
@@ -232,7 +234,10 @@ public class filtreAntiSpam implements Serializable{
 
 
 	public static void main(String[] args) {
-		String firstArg = args[0];
+		String firstArg = "";
+		if(args.length > 0){
+			firstArg = args[0];
+		}
 		if((args.length == 4) && (firstArg.equals("save"))){
 			//sauvegarde du classifieur
 			String destination = args[1];
@@ -303,11 +308,11 @@ public class filtreAntiSpam implements Serializable{
 				boolean a = fas.isSpam(fas.lire_message(testFolder + "/spam/" + i + ".txt"));
 
 				if(a){
-					System.out.println(ANSI_GREEN + "Spam number " + i + " has been classified as a SPAM" + ANSI_RESET);
+					System.out.println(ANSI_GREEN + "Spam number " + i + " classified as SPAM" + ANSI_RESET);
 					nbCorrectSpam++;
 				}
 				else{
-					System.out.println(ANSI_RED + "Spam number " + i + " has been classified as a HAM" + ANSI_RESET);
+					System.out.println(ANSI_RED + "Spam number " + i + " classified as HAM *** error ***" + ANSI_RESET);
 				}
 			}
 
@@ -315,17 +320,17 @@ public class filtreAntiSpam implements Serializable{
 				boolean a = fas.isSpam(fas.lire_message(testFolder + "/ham/" + i + ".txt"));
 
 				if(!a){
-					System.out.println(ANSI_GREEN + "Ham number " + i + " has been classified as a HAM" + ANSI_RESET);
+					System.out.println(ANSI_GREEN + "Ham number " + i + " classified as HAM" + ANSI_RESET);
 					nbCorrectHam++;
 				}
 				else{
-					System.out.println(ANSI_RED + "HAM number " + i + " has been classified as a SPAM" + ANSI_RESET);
+					System.out.println(ANSI_RED + "HAM number " + i + " classified as SPAM *** error ***" + ANSI_RESET);
 				}
 			}
 
-			double spamError = (nbSpamInTest - nbCorrectSpam) / nbSpamInTest;
-			double hamError = (nbHamInTest - nbCorrectHam) / nbHamInTest;
-			double globalError = (nbSpamInTest + nbHamInTest - nbCorrectSpam - nbCorrectHam) / (nbHamInTest + nbSpamInTest);
+			double spamError = 100*(nbSpamInTest - nbCorrectSpam) / nbSpamInTest;
+			double hamError = 100*(nbHamInTest - nbCorrectHam) / nbHamInTest;
+			double globalError = 100*(nbSpamInTest + nbHamInTest - nbCorrectSpam - nbCorrectHam) / (nbHamInTest + nbSpamInTest);
 
 			System.out.println("Test error on " + nbSpamInTest + " spams : " + spamError + "%");
 			System.out.println("Test error on " + nbHamInTest + " hams : " + hamError + "%");
