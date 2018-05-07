@@ -75,7 +75,7 @@ public class filtreAntiSpam implements Serializable{
 				if(mail[i]){
 					x = 1;
 				}
-				this.bSpam[i] = (njSpam + x + epsilon) / (this.nbSpam + 1 + 2*epsilon);
+				this.bSpam[i] = (njSpam + x + epsilon) / (this.nbSpam + 1 + 2 * epsilon);
 			}
 		} else {
 			this.nbHam++;
@@ -189,10 +189,13 @@ public class filtreAntiSpam implements Serializable{
 				pHam += Math.log(1 - this.bHam[i]);
 			}
 		}
-		pSpam += this.probaSpam;
-		pHam += this.probaHam;
+		pSpam += Math.log(this.probaSpam);
+		pHam += Math.log(this.probaHam);
 
-		System.out.printf("P(Y=SPAM | X=x) = %f, P(Y=HAM | X=x) = %f.\n", pSpam, pHam);
+		double pSpamDisp = 1 / (1 + Math.exp(pHam - pSpam));
+		double pHamDisp = 1 / (1 + Math.exp(pSpam - pHam));
+
+		System.out.printf("P(Y=SPAM | X=x) = %f, P(Y=HAM | X=x) = %f.\n", pSpamDisp, pHamDisp);
 
 		if(pSpam > pHam){
 			return true;
@@ -328,13 +331,15 @@ public class filtreAntiSpam implements Serializable{
 				}
 			}
 
-			double spamError = 100*(nbSpamInTest - nbCorrectSpam) / nbSpamInTest;
-			double hamError = 100*(nbHamInTest - nbCorrectHam) / nbHamInTest;
-			double globalError = 100*(nbSpamInTest + nbHamInTest - nbCorrectSpam - nbCorrectHam) / (nbHamInTest + nbSpamInTest);
+			double spamError = 100 * (nbSpamInTest - nbCorrectSpam) / nbSpamInTest;
+			double hamError = 100 * (nbHamInTest - nbCorrectHam) / nbHamInTest;
+			double globalError = 100 * (nbSpamInTest + nbHamInTest - nbCorrectSpam - nbCorrectHam) / (nbHamInTest + nbSpamInTest);
 
 			System.out.println("Test error on " + nbSpamInTest + " spams : " + spamError + "%");
 			System.out.println("Test error on " + nbHamInTest + " hams : " + hamError + "%");
 			System.out.println("Global test error : " + globalError + "%");
+
+			//fas.printApprentissage();
 		} else if((args.length == 2)){
 			//utilisation d'un classifieur sauvegardé
 			String source = args[0];
@@ -356,6 +361,5 @@ public class filtreAntiSpam implements Serializable{
 			System.out.println("usage : java filtreAntiSpam <source file for the classifier > <message to test>");
 			System.exit(-1);
 		}
-
 	}
 }

@@ -39,7 +39,7 @@ Nous avons réfléchi ensemble aux questions avant d'implémenter les réponses 
 Afin de décider si un message est ou non un spam, plutôt que de calculer :
 \[ \prod\limits_{j=1}^d {(b^jSPAM)^x}^j {(1-b^jSPAM)^{1-x}}^j \]
 Nous avons utilisé les logarithmes afin de calculer :
-\[ \sum\limits_{j=1}^d ln({(b^jSPAM)^x}^j) ln({(1-b^jSPAM)^{1-x}}^j) \]
+\[ \sum\limits_{j=1}^d ln({(b^jSPAM)^x}^j) + ln({(1-b^jSPAM)^{1-x}}^j) \]
 
 Les \[ x^j \] et \[ 1- x^j \] sont représentés sous forme de booléens, afin de simplifier les calculs du classifieurs en utilisant des conditions ``if'' plutot que des calculs de puissance.
 
@@ -49,57 +49,58 @@ La fonction lire\_message sépare le texte selon l'expression régulière ``\\ W
 
 \begin{lstlisting}[language=bash]
 java filtreAntiSpam  basetest 100 200
-Nombre de spams dans la base d'apprentissage : 200
+Nombre de spams dans la base d'apprentissage : 500   
 
-Nombre de hams dans la base d'apprentissage : 200
+Nombre de hams dans la base d'apprentissage : 500
 
-Apprentissage sur: 200 spams et 200 hams...
+Apprentissage sur: 500 spams et 500 hams...
 === TEST ===
 
-P(Y=SPAM | X=x) = -291,529731, P(Y=HAM | X=x) = -319,106067.
+P(Y=SPAM | X=x) = 1,000000, P(Y=HAM | X=x) = 0,000000.
 Spam number 0 classified as SPAM
-P(Y=SPAM | X=x) = -295,396522, P(Y=HAM | X=x) = -338,647222.
+P(Y=SPAM | X=x) = 1,000000, P(Y=HAM | X=x) = 0,000000.
 Spam number 1 classified as SPAM
-P(Y=SPAM | X=x) = -296,500981, P(Y=HAM | X=x) = -350,242648.
+P(Y=SPAM | X=x) = 1,000000, P(Y=HAM | X=x) = 0,000000.
 Spam number 2 classified as SPAM
-P(Y=SPAM | X=x) = -296,500981, P(Y=HAM | X=x) = -350,242648.
+P(Y=SPAM | X=x) = 1,000000, P(Y=HAM | X=x) = 0,000000.
 Spam number 3 classified as SPAM
-P(Y=SPAM | X=x) = -205,249638, P(Y=HAM | X=x) = -253,033832.
+P(Y=SPAM | X=x) = 1,000000, P(Y=HAM | X=x) = 0,000000.
+Spam number 4 classified as SPAM
+P(Y=SPAM | X=x) = 1,000000, P(Y=HAM | X=x) = 0,000000.
+Spam number 5 classified as SPAM
+P(Y=SPAM | X=x) = 0,989475, P(Y=HAM | X=x) = 0,010525.
+Spam number 6 classified as SPAM
 ...
-P(Y=SPAM | X=x) = -99,320038, P(Y=HAM | X=x) = -87,989156.
-Spam number 29 classified as HAM *** error ***
-...
-P(Y=SPAM | X=x) = -103,779099, P(Y=HAM | X=x) = -100,698392.
-Spam number 97 classified as HAM *** error ***
-P(Y=SPAM | X=x) = -186,837117, P(Y=HAM | X=x) = -196,483656.
-Spam number 98 classified as SPAM
-P(Y=SPAM | X=x) = -220,585287, P(Y=HAM | X=x) = -248,344009.
-Spam number 99 classified as SPAM
-...
-P(Y=SPAM | X=x) = -386,925411, P(Y=HAM | X=x) = -369,281157.
-Ham number 0 classified as HAM
-P(Y=SPAM | X=x) = -168,757847, P(Y=HAM | X=x) = -143,911920.
-Ham number 1 classified as HAM
-...
-P(Y=SPAM | X=x) = -417,327559, P(Y=HAM | X=x) = -431,827431.
+Ham number 47 classified as HAM
+P(Y=SPAM | X=x) = 0,000000, P(Y=HAM | X=x) = 1,000000.
+Ham number 48 classified as HAM
+P(Y=SPAM | X=x) = 0,000000, P(Y=HAM | X=x) = 1,000000.
+Ham number 49 classified as HAM
+P(Y=SPAM | X=x) = 0,000000, P(Y=HAM | X=x) = 1,000000.
+Ham number 50 classified as HAM
+P(Y=SPAM | X=x) = 0,000000, P(Y=HAM | X=x) = 1,000000.
+Ham number 51 classified as HAM
+P(Y=SPAM | X=x) = 0,000003, P(Y=HAM | X=x) = 0,999997.
+Ham number 52 classified as HAM
+P(Y=SPAM | X=x) = 0,000000, P(Y=HAM | X=x) = 1,000000.
+Ham number 53 classified as HAM
+P(Y=SPAM | X=x) = 1,000000, P(Y=HAM | X=x) = 0,000000.
 HAM number 54 classified as SPAM *** error ***
-P(Y=SPAM | X=x) = -466,173949, P(Y=HAM | X=x) = -474,356725.
-HAM number 55 classified as SPAM *** error ***
 ...
-P(Y=SPAM | X=x) = -174,426532, P(Y=HAM | X=x) = -155,199404.
-Ham number 196 classified as HAM
-P(Y=SPAM | X=x) = -255,184287, P(Y=HAM | X=x) = -236,380796.
-Ham number 197 classified as HAM
-P(Y=SPAM | X=x) = -130,871171, P(Y=HAM | X=x) = -118,576840.
-Ham number 198 classified as HAM
-P(Y=SPAM | X=x) = -368,254599, P(Y=HAM | X=x) = -340,982368.
-Ham number 199 classified as HAM
-
-Test error on 100 spams : 12.0%
-Test error on 200 hams : 2.0%
-Global test error : 5.333333333333333%
-
-
+Ham number 94 classified as HAM
+P(Y=SPAM | X=x) = 0,000000, P(Y=HAM | X=x) = 1,000000.
+Ham number 95 classified as HAM
+P(Y=SPAM | X=x) = 0,000000, P(Y=HAM | X=x) = 1,000000.
+Ham number 96 classified as HAM
+P(Y=SPAM | X=x) = 0,000000, P(Y=HAM | X=x) = 1,000000.
+Ham number 97 classified as HAM
+P(Y=SPAM | X=x) = 0,000000, P(Y=HAM | X=x) = 1,000000.
+Ham number 98 classified as HAM
+P(Y=SPAM | X=x) = 0,000000, P(Y=HAM | X=x) = 1,000000.
+Ham number 99 classified as HAM
+Test error on 100 spams : 9.0%
+Test error on 100 hams : 4.0%
+Global test error : 6.5%
 \end{lstlisting}
 
 \end{document}
